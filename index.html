@@ -2420,10 +2420,14 @@
     // Verificar si hay días desbloqueados hace 18 horas y mostrar notificación
     function checkForDayNotification() {
         const completedDays = JSON.parse(localStorage.getItem('reset7d-completed-days') || '{}');
-        const lastNotificationShown = localStorage.getItem('reset7d-last-notification') || '0';
-        const lastCompletedDay = Math.max(...Object.keys(completedDays).map(k => parseInt(k)), 0);
+        const lastNotificationShown = parseInt(localStorage.getItem('reset7d-last-notification') || '0');
+        const completedDayNumbers = Object.keys(completedDays).map(k => parseInt(k)).filter(n => !isNaN(n));
         
-        // Si completó al menos 1 día
+        if (completedDayNumbers.length === 0) return; // Sin días completados
+        
+        const lastCompletedDay = Math.max(...completedDayNumbers);
+        
+        // Si completó un día y hay un siguiente disponible (< 7)
         if (lastCompletedDay > 0 && lastCompletedDay < 7) {
             const nextDay = lastCompletedDay + 1;
             const dayCompletionTime = parseInt(localStorage.getItem(`reset7d-day-${lastCompletedDay}-completed-time`)) || 0;
@@ -2432,8 +2436,9 @@
                 const timeSinceCompletion = Date.now() - dayCompletionTime;
                 const eighteenHoursMs = 18 * 60 * 60 * 1000;
                 
-                // Si han pasado 18 horas desde que completó el día anterior
-                if (timeSinceCompletion >= eighteenHoursMs && parseInt(lastNotificationShown) < nextDay) {
+                // Si han pasado 18 horas y la notificación no fue mostrada aún
+                if (timeSinceCompletion >= eighteenHoursMs && lastNotificationShown < nextDay) {
+                    console.log(`✅ Desbloqueando Día ${nextDay} - ${Math.floor(timeSinceCompletion / (60*60*1000))} horas han pasado`);
                     showDayNotification(nextDay);
                     localStorage.setItem('reset7d-last-notification', nextDay.toString());
                 }
@@ -2590,6 +2595,17 @@
         }
     }
 
+    // Timer de background para verificar desbloqueos de 18 horas
+    function startBackgroundUnlockTimer() {
+        // Verificar inmediatamente al cargar
+        checkForDayNotification();
+        
+        // Luego verificar cada 5 minutos
+        setInterval(() => {
+            checkForDayNotification();
+        }, 5 * 60 * 1000); // 5 minutos
+    }
+
     // Inicializar la página cuando cargue el documento
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Documento cargado');
@@ -2601,6 +2617,9 @@
         if (homePage) homePage.classList.remove('hidden');
         if (resetPage) resetPage.classList.add('hidden');
         if (cv90Page) cv90Page.classList.add('hidden');
+        
+        // Iniciar el timer de background para desbloqueos automáticos
+        startBackgroundUnlockTimer();
     });
 
 </script>
