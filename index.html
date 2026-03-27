@@ -1391,28 +1391,47 @@
 
     // ===== TIMER AUTOMÁTICO DE DESBLOQUEO CADA 18 HORAS =====
     function startAutoUnlockTimer() {
-        // Verificar cada minuto
+        // Verificar inmediatamente al iniciar
+        checkAndUnlockDays();
+        
+        // Luego verificar cada minuto
         setInterval(() => {
-            const startTime = parseInt(localStorage.getItem('reset7d-start-time')) || 0;
-            const now = Date.now();
-            const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
-            
-            // Calcular qué día debería estar desbloqueado
-            const hoursElapsed = Math.floor((now - startTime) / (60 * 60 * 1000));
-            const nextDayToUnlock = Math.floor(hoursElapsed / 18) + 1;
-            
-            // Desbloquear todos los días hasta nextDayToUnlock
-            for (let i = 1; i <= Math.min(nextDayToUnlock, 7); i++) {
-                if (!unlockedDays[i]) {
-                    unlockedDays[i] = true;
-                    localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
-                    // Si estamos en Reset 7D, re-renderizar para mostrar nuevo día
-                    if (!document.getElementById('reset7d-page').classList.contains('hidden')) {
-                        renderReset7D();
-                    }
-                }
-            }
+            checkAndUnlockDays();
         }, 60000); // Verificar cada minuto
+    }
+    
+    // Función separada para verificar y desbloquear días
+    function checkAndUnlockDays() {
+        const startTime = parseInt(localStorage.getItem('reset7d-start-time')) || 0;
+        
+        if (startTime === 0) return; // No hay start-time, no hacer nada
+        
+        const now = Date.now();
+        const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
+        
+        // Calcular qué día debería estar desbloqueado
+        const hoursElapsed = Math.floor((now - startTime) / (60 * 60 * 1000));
+        const nextDayToUnlock = Math.floor(hoursElapsed / 18) + 1;
+        
+        // Desbloquear todos los días hasta nextDayToUnlock
+        let unlockedNewDay = false;
+        for (let i = 1; i <= Math.min(nextDayToUnlock, 7); i++) {
+            if (!unlockedDays[i]) {
+                unlockedDays[i] = true;
+                unlockedNewDay = true;
+                console.log(`✅ Día ${i} desbloqueado automáticamente (${hoursElapsed} horas desde login)`);
+            }
+        }
+        
+        // Si se desbloqueó un día nuevo, guardar y re-renderizar
+        if (unlockedNewDay) {
+            localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
+            // Si estamos en Reset 7D, re-renderizar para mostrar nuevo día
+            const resetPage = document.getElementById('reset7d-page');
+            if (resetPage && !resetPage.classList.contains('hidden')) {
+                renderReset7D();
+            }
+        }
     }
     
     // ===== FUNCIONES DE 5 TOQUES ADMIN =====
@@ -1528,14 +1547,17 @@
             document.getElementById('user-reto-display').textContent = userData.reto;
         }
         
-        // Inicializar Día 1 si es primera vez
+        // Inicializar Día 1 y reset7d-start-time si es primera vez
         const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
         if (!localStorage.getItem('reset7d-start-time')) {
             localStorage.setItem('reset7d-start-time', Date.now());
             unlockedDays[1] = true;
             localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
-            startAutoUnlockTimer(); // Iniciar timer
+            console.log('🚀 Reset 7D iniciado - Día 1 desbloqueado');
         }
+        
+        // ✅ IMPORTANTE: INICIAR TIMER EN CADA CARGA (no solo primera vez)
+        startAutoUnlockTimer();
         
         renderReset7D();
         window.scrollTo(0, 0);
@@ -2414,13 +2436,12 @@
     // Cargar y mostrar checkboxes completados al renderizar Reset 7D
     function loadReset7DProgress() {
         updateReset7DProgress();
-        checkForDayNotification();
+        checkForCompletionBasedUnlock();
     }
 
-    // Verificar si hay días desbloqueados hace 18 horas y mostrar notificación
-    function checkForDayNotification() {
+    // Verificar si hay días completados hace 18 horas y desbloquear el siguiente
+    function checkForCompletionBasedUnlock() {
         const completedDays = JSON.parse(localStorage.getItem('reset7d-completed-days') || '{}');
-        const lastNotificationShown = parseInt(localStorage.getItem('reset7d-last-notification') || '0');
         const completedDayNumbers = Object.keys(completedDays).map(k => parseInt(k)).filter(n => !isNaN(n));
         
         if (completedDayNumbers.length === 0) return; // Sin días completados
@@ -2436,34 +2457,32 @@
                 const timeSinceCompletion = Date.now() - dayCompletionTime;
                 const eighteenHoursMs = 18 * 60 * 60 * 1000;
                 
-                // Si han pasado 18 horas y la notificación no fue mostrada aún
-                if (timeSinceCompletion >= eighteenHoursMs && lastNotificationShown < nextDay) {
-                    console.log(`✅ Desbloqueando Día ${nextDay} - ${Math.floor(timeSinceCompletion / (60*60*1000))} horas han pasado`);
-                    showDayNotification(nextDay);
-                    localStorage.setItem('reset7d-last-notification', nextDay.toString());
+                // Si han pasado 18 horas desde la completitud del día anterior
+                if (timeSinceCompletion >= eighteenHoursMs) {
+                    const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
+                    
+                    // Solo desbloquear si aún no está desbloqueado
+                    if (!unlockedDays[nextDay]) {
+                        console.log(`✅ Desbloqueando Día ${nextDay} - ${Math.floor(timeSinceCompletion / (60*60*1000))} horas desde completitud del Día ${lastCompletedDay}`);
+                        unlockedDays[nextDay] = true;
+                        localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
+                        
+                        // ✅ IMPORTANTE: Re-renderizar para mostrar el nuevo día desbloqueado
+                        const resetPage = document.getElementById('reset7d-page');
+                        if (resetPage && !resetPage.classList.contains('hidden')) {
+                            renderReset7D();
+                        }
+                        
+                        // Mostrar notificación
+                        showDayUnlockedNotification(nextDay);
+                    }
                 }
             }
         }
     }
-
-    // Mostrar notificación de día desbloqueado
-    function showDayNotification(dayId) {
-        // ✅ IMPORTANTE: Desbloquear el día visualmente INMEDIATAMENTE
-        const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
-        unlockedDays[dayId] = true;
-        localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
-        
-        // Actualizar la UI si el usuario está en la página
-        const dayElement = document.getElementById(`day-${dayId}`);
-        if (dayElement) {
-            // Remover overlay de bloqueo
-            const overlay = dayElement.querySelector('.absolute.inset-0');
-            if (overlay) overlay.remove();
-            
-            // Remover clases de deshabilitado
-            dayElement.classList.remove('opacity-50', 'pointer-events-none');
-        }
-        
+    
+    // Mostrar notificación cuando un día se desbloquea
+    function showDayUnlockedNotification(dayId) {
         const notification = document.createElement('div');
         notification.className = 'day-notification';
         notification.innerHTML = `
@@ -2614,11 +2633,11 @@
     // Timer de background para verificar desbloqueos de 18 horas
     function startBackgroundUnlockTimer() {
         // Verificar inmediatamente al cargar
-        checkForDayNotification();
+        checkForCompletionBasedUnlock();
         
         // Luego verificar cada 5 minutos
         setInterval(() => {
-            checkForDayNotification();
+            checkForCompletionBasedUnlock();
         }, 5 * 60 * 1000); // 5 minutos
     }
 
