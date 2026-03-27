@@ -2448,6 +2448,22 @@
 
     // Mostrar notificación de día desbloqueado
     function showDayNotification(dayId) {
+        // ✅ IMPORTANTE: Desbloquear el día visualmente INMEDIATAMENTE
+        const unlockedDays = JSON.parse(localStorage.getItem('reset7d-unlocked-days') || '{}');
+        unlockedDays[dayId] = true;
+        localStorage.setItem('reset7d-unlocked-days', JSON.stringify(unlockedDays));
+        
+        // Actualizar la UI si el usuario está en la página
+        const dayElement = document.getElementById(`day-${dayId}`);
+        if (dayElement) {
+            // Remover overlay de bloqueo
+            const overlay = dayElement.querySelector('.absolute.inset-0');
+            if (overlay) overlay.remove();
+            
+            // Remover clases de deshabilitado
+            dayElement.classList.remove('opacity-50', 'pointer-events-none');
+        }
+        
         const notification = document.createElement('div');
         notification.className = 'day-notification';
         notification.innerHTML = `
