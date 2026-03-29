@@ -161,6 +161,142 @@
             animation: confetti-fall 3s ease-out forwards;
         }
         
+        /* Modal de Bienvenida Reset 7D */
+        .welcome-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.4s ease-in;
+            padding: 1rem;
+        }
+        
+        .welcome-modal.hidden {
+            display: none;
+        }
+        
+        .welcome-modal-content {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideDown 0.5s ease-out;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .welcome-modal-content h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 1.5rem;
+            font-family: 'Oswald', sans-serif;
+        }
+        
+        .welcome-modal-content p {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .welcome-section {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid #10b981;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+        
+        .welcome-section h3 {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .welcome-section p {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+        
+        .phases-list {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .phase-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .phase-number {
+            font-weight: bold;
+            color: #3b82f6;
+            font-size: 1.25rem;
+            min-width: 2rem;
+        }
+        
+        .phase-description {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .modal-button {
+            flex: 1;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .modal-button-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .modal-button-primary:hover {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+        }
+        
+        .modal-button-secondary {
+            background: transparent;
+            color: #cbd5e1;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+        
+        .modal-button-secondary:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+        }
+        
         /* Sliders personalizados */
         input[type="range"] {
             width: 100%;
@@ -635,11 +771,64 @@
                 <p class="text-xl text-white/90 mb-8">
                     Tu Reset 7D gratis es el primer paso. Después, decide si quieres continuar con los 90 días completos.
                 </p>
-                <button onclick="startReset7D()" class="bg-white text-emerald-600 font-bold py-4 px-10 rounded-xl uppercase tracking-widest hover:bg-slate-100 transition">
+                <button id="cta-button" onclick="initializeReset7D()" class="bg-white text-emerald-600 font-bold py-4 px-10 rounded-xl uppercase tracking-widest hover:bg-slate-100 transition">
                     Comienza Ahora
                 </button>
             </div>
         </section>
+    </div>
+
+    <!-- MODAL DE BIENVENIDA RESET 7D -->
+    <div id="welcome-modal" class="welcome-modal hidden">
+        <div class="welcome-modal-content">
+            <h2>🎯 Bienvenido a Reset Vital 7D</h2>
+            <p>Durante los próximos 7 días vas a experimentar cambios reales en tu cuerpo y mente. Aquí te explico qué esperar:</p>
+            
+            <div class="welcome-section">
+                <h3>📓 Recomendación Importante</h3>
+                <p>Ten a mano una <strong>libreta o documento digital</strong> para tomar apuntes durante estos 7 días. Registrar cómo te sientes, tus observaciones y cambios amplificará tu transformación.</p>
+            </div>
+            
+            <div class="welcome-section">
+                <h3>🔒 Los Días Están Bloqueados</h3>
+                <p>Cada día se desbloquea automáticamente 18 horas después de completar el anterior. ¿Por qué? Para evitar que saltees pasos y garantizar que absorbes cada fase completamente. Las prisas sabotean resultados.</p>
+            </div>
+            
+            <div class="welcome-section">
+                <h3>⚙️ La Lógica de las 4 Fases</h3>
+                <p>El orden de estos 7 días NO es aleatorio. Cada fase prepara la siguiente. <strong>Comenzar regulando tu sueño es clave</strong> porque:</p>
+                <p style="margin-top: 0.75rem; margin-bottom: 0; padding-left: 1rem; border-left: 2px solid #3b82f6;">El sueño es la base. Afecta tu energía, claridad mental y digestión. Los primeros días se enfocan en esto.</p>
+            </div>
+            
+            <div class="phases-list">
+                <div class="phase-item">
+                    <div class="phase-number">1️⃣</div>
+                    <div class="phase-description"><strong>Fase 1:</strong> Sueño & Recuperación - Tu cuerpo necesita descanso profundo</div>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-number">2️⃣</div>
+                    <div class="phase-description"><strong>Fase 2:</strong> Energía & Nutrición - Con mejor sueño, tu energía mejora</div>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-number">3️⃣</div>
+                    <div class="phase-description"><strong>Fase 3:</strong> Claridad & Movimiento - El cuerpo limpio piensa claro</div>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-number">4️⃣</div>
+                    <div class="phase-description"><strong>Fase 4:</strong> Integración - Consolida los hábitos como tu nueva realidad</div>
+                </div>
+            </div>
+            
+            <div class="welcome-section">
+                <h3>💬 Preguntas Diarias</h3>
+                <p>Cada día recibirás una guía detallada con instrucciones claras. ¿Dudas? <strong>Contacta por WhatsApp</strong> - estoy aquí para apoyarte.</p>
+            </div>
+            
+            <div class="modal-buttons">
+                <button class="modal-button modal-button-secondary" onclick="closeWelcomeModal()">Entendido, Espera</button>
+                <button class="modal-button modal-button-primary" onclick="proceedToReset7D()">¡Comencemos! 🚀</button>
+            </div>
+        </div>
     </div>
 
     <!-- PÁGINA RESET 7D -->
@@ -1518,6 +1707,34 @@
         }, 1500);
     }
 
+    function initializeReset7D() {
+        // Verificar si ya mostró el modal de bienvenida
+        const welcomeShown = localStorage.getItem('reset7d-welcome-shown');
+        
+        if (!welcomeShown) {
+            // Primera visita: mostrar modal de bienvenida
+            document.getElementById('welcome-modal').classList.remove('hidden');
+        } else {
+            // No es primera visita: proceder directamente
+            startReset7D();
+        }
+    }
+    
+    function closeWelcomeModal() {
+        document.getElementById('welcome-modal').classList.add('hidden');
+    }
+    
+    function proceedToReset7D() {
+        // Marcar que ya vio el modal
+        localStorage.setItem('reset7d-welcome-shown', 'true');
+        
+        // Cerrar modal
+        document.getElementById('welcome-modal').classList.add('hidden');
+        
+        // Continuar con el flujo normal
+        startReset7D();
+    }
+    
     function startReset7D() {
         // Verificar si el usuario ya capturó sus datos
         const userData = localStorage.getItem('reset7d-user-data');
@@ -2655,7 +2872,27 @@
         
         // Iniciar el timer de background para desbloqueos automáticos
         startBackgroundUnlockTimer();
+        
+        // ✅ Actualizar dinámicamente el texto del botón CTA
+        updateCtaButtonText();
     });
+    
+    function updateCtaButtonText() {
+        const ctaButton = document.getElementById('cta-button');
+        if (!ctaButton) return;
+        
+        // Verificar si el usuario ya ha comenzado Reset7D
+        const userData = localStorage.getItem('reset7d-user-data');
+        const unlockedDays = localStorage.getItem('reset7d-unlocked-days');
+        const completedDays = localStorage.getItem('reset7d-completed-days');
+        
+        // Si tiene datos y ha desbloqueado o completado días, es un retorno
+        if (userData && (unlockedDays || completedDays)) {
+            ctaButton.textContent = 'Continúa con tu Reset Vital 7D';
+        } else {
+            ctaButton.textContent = 'Comienza Ahora';
+        }
+    }
 
 </script>
 
